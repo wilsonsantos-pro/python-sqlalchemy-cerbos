@@ -142,8 +142,8 @@ def update_contact(
     contact_schema: ContactSchema,
     db_contact: Contact = Depends(get_db_contact),
     p: Principal = Depends(get_principal),
+    r: Resource = Depends(get_resource_from_contact),
 ):
-    r = get_resource_from_contact(db_contact)
 
     with CerbosClient(host="http://localhost:3592") as c:
         if not c.is_allowed("update", p, r):
