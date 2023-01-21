@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  cerbos:
+    image: ghcr.io/cerbos/cerbos:latest
+    ports:
+      - 3592:3592
+    volumes:
+      - ./cerbos/policies:/policies
