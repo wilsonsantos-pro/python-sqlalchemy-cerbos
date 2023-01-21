@@ -182,4 +182,4 @@ def delete_contact(
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", reload=True)
+    uvicorn.run("main:app", reload=True, reload_excludes=".venv")

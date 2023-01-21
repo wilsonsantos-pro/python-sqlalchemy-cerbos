@@ -32,6 +32,7 @@ lint = [
 dev = [
     "ptpython>=3.0.20",
     "pylint>=2.15.10",
+    "watchfiles>=0.18.1",
 ]
 
 [build-system]
