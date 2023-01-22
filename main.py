@@ -9,6 +9,7 @@ from sqlalchemy import delete, select
 
 from app.models import Contact, Session, User
 from app.schemas import ContactSchema
+from auth.query import get_query_plan
 
 app = FastAPI()
 security = HTTPBasic()
@@ -59,12 +60,7 @@ def get_resource_from_contact(
 
 @app.get("/contacts")
 def get_contacts(p: Principal = Depends(get_principal)):
-    with CerbosClient(host="http://localhost:3592") as c:
-        rd = ResourceDesc("contact")
-
-        # Get the query plan for "read" action
-        plan = c.plan_resources("read", p, rd)
-        # print(json.dumps(plan.to_dict(), sort_keys=False, indent=4))
+    plan = get_query_plan(p, "contact", "read")
 
     query = get_query(
         plan,
