@@ -1,9 +1,10 @@
 version: '3.8'
 
+# docker run --rm --name cerbos -v $(pwd)/policies:/policies -p 3592:3592 -p 3593:3593 ghcr.io/cerbos/cerbos:latest
 services:
   cerbos:
     image: ghcr.io/cerbos/cerbos:latest
     ports:
       - 3592:3592
     volumes:
-      - ./cerbos/policies:/policies
+      - ./policies:/policies
