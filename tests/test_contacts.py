@@ -4,7 +4,8 @@ from typing import TYPE_CHECKING, Any, Dict, Generator, List
 import pytest
 from sqlalchemy import delete
 
-from app.models import Contact, Session, User
+from app.models import Contact, Session
+from app.quota import set_contact_quota_limit
 from app.schemas import ContactSchema
 
 if TYPE_CHECKING:
@@ -120,3 +121,17 @@ def test_create_new_contact(
         "/contacts/new", headers=headers, auth=auth, json=new_contact.dict()
     )
     assert response.status_code == expected, response.json()
+
+
+def test_create_new_contact_quota(
+    client: "TestClient",
+    headers: Dict,
+    new_contact: ContactSchema,
+):
+    set_contact_quota_limit(5)
+    username = "john"
+    auth = (username, "")
+    response = client.post(
+        "/contacts/new", headers=headers, auth=auth, json=new_contact.dict()
+    )
+    assert response.status_code == 403, response.json()

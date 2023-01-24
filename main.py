@@ -8,6 +8,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy import delete, select
 
 from app.models import Contact, Session, User
+from app.quota import quota
 from app.schemas import ContactSchema
 from auth.query import get_query_plan
 
@@ -32,7 +33,11 @@ def get_principal(credentials: HTTPBasicCredentials = Depends(security)) -> Prin
                 detail="User not found",
             )
 
-    return Principal(user.id, roles={user.role}, attr={"department": user.department})
+    return Principal(
+        user.id,
+        roles={user.role},
+        attr={"department": user.department, "contact_quota": 5},
+    )
 
 
 def get_db_contact(contact_id: str) -> Contact:
@@ -118,6 +123,7 @@ def create_contact(
             Resource(
                 id="new",
                 kind="contact",
+                attr={"contact_quota_limit": quota.contact_quota_limit},
             ),
         ):
             raise HTTPException(
