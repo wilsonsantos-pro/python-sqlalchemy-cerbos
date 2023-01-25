@@ -2,7 +2,7 @@
 from typing import TYPE_CHECKING, Any, Dict, Generator, List
 
 import pytest
-from sqlalchemy import delete
+from sqlalchemy import delete, update
 
 from app.models import Contact, Session
 from app.quota import set_contact_quota_limit
@@ -135,3 +135,44 @@ def test_create_new_contact_quota(
         "/contacts/new", headers=headers, auth=auth, json=new_contact.dict()
     )
     assert response.status_code == 403, response.json()
+
+
+@pytest.fixture
+def update_contact() -> Generator:
+    update_contact = ContactSchema(
+        first_name="Nick",
+        last_name="Smyth",
+        marketing_opt_in=True,
+        is_active=False,
+        owner_id="1",
+        company_id="1",
+    )
+    yield update_contact
+    with Session() as dbsession:
+        dbsession.execute(
+            update(Contact)
+            .where(
+                Contact.first_name == update_contact.first_name,
+                Contact.last_name == update_contact.last_name,
+            )
+            .values(is_active=True)
+        )
+        dbsession.commit()
+
+
+def test_update_contact(
+    client: "TestClient",
+    headers: Dict,
+    update_contact: ContactSchema,
+):
+    contact_id = 1
+    username = "john"
+    auth = (username, "")
+    response = client.put(
+        f"/contacts/{contact_id}",
+        headers=headers,
+        auth=auth,
+        json=update_contact.dict(),
+    )
+    assert response.status_code == 200, response.json()
+    assert not response.json()["contact"]["is_active"]
