@@ -10,6 +10,7 @@ from sqlalchemy import delete, select
 from app.models import Contact, Session, User
 from app.quota import quota
 from app.schemas import ContactSchema
+from auth.auth import is_allowed
 from auth.query import get_query_plan
 
 app = FastAPI()
@@ -116,19 +117,16 @@ def get_contact(
 def create_contact(
     contact_schema: ContactSchema, p: Principal = Depends(get_principal)
 ):
-    with CerbosClient(host="http://localhost:3592") as c:
-        if not c.is_allowed(
-            "create",
-            p,
-            Resource(
-                id="new",
-                kind="contact",
-                attr={"contact_quota_limit": quota.contact_quota_limit},
-            ),
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
-            )
+    resource = Resource(
+        id="new",
+        kind="contact",
+        attr={"contact_quota_limit": quota.contact_quota_limit},
+    )
+
+    if not is_allowed("create", p, resource):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
+        )
 
     db_contact = Contact(**contact_schema.dict())
     with Session() as s:
