@@ -6,7 +6,7 @@ authors = [
     {name = "\"Cerbos Developers\"", email = "\"help@cerbos.dev\""},
 ]
 dependencies = [
-    "cerbos>=0.4.1",
+    "cerbos>=0.5.0",
     "SQLAlchemy>=1.4.40",
     "fastapi>=0.81.0",
     "uvicorn>=0.18.3",
