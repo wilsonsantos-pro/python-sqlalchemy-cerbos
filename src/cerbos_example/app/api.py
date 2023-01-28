@@ -6,11 +6,12 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy import delete, select
 
-from cerbos_example.app.models import Contact, Session, User
+from cerbos_example.app.models import Contact, User
 from cerbos_example.app.quota import quota
 from cerbos_example.app.schemas import ContactSchema
 from cerbos_example.auth.auth import is_allowed
 from cerbos_example.auth.query import get_query_plan
+from cerbos_example.database import Session
 
 app = FastAPI()
 security = HTTPBasic()

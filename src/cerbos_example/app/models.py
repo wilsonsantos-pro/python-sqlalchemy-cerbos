@@ -1,21 +1,9 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, create_engine
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String
+from sqlalchemy.orm import relationship
 
-SQLALCHEMY_DATABASE_URL = "sqlite://"
-
-Base = declarative_base()
-
-# in-memory database
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    # Use a static pool to persist state with an in memory instance of sqlite
-    poolclass=StaticPool,
-)
-
+from cerbos_example.database import Base
 
 _INC = 1
 
@@ -27,7 +15,7 @@ def _get_str_inc():
     return s_inc
 
 
-def _reset_inc():
+def reset_inc():
     global _INC  # pylint: disable=global-statement
     _INC = 1
 
@@ -69,97 +57,3 @@ class Contact(Base):
     company = relationship("Company", back_populates="contacts", lazy="joined")
     is_active = Column(Boolean, default=False)
     marketing_opt_in = Column(Boolean, default=False)
-
-
-# generate tables from sqla metadata
-Base.metadata.create_all(engine)
-
-Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Populate with example data
-with Session() as session:
-    coca_cola = Company(name="Coca Cola")
-    legal_co = Company(name="Legal Co")
-    pepsi_co = Company(name="Pepsi Co")
-    capri_sun = Company(name="Capri Sun")
-    session.add_all([coca_cola, legal_co, pepsi_co, capri_sun])
-    session.commit()
-    _reset_inc()
-
-    alice = User(
-        name="Alice",
-        username="alice",
-        email="alice@cerbos.demo",
-        role="admin",
-        department="IT",
-    )
-    john = User(
-        name="John",
-        username="john",
-        email="john@cerbos.demo",
-        role="user",
-        department="Sales",
-    )
-    sarah = User(
-        name="Sarah",
-        username="sarah",
-        email="sarah@cerbos.demo",
-        role="user",
-        department="Sales",
-    )
-    geri = User(
-        name="Geri",
-        username="geri",
-        email="geri@cerbos.demo",
-        role="user",
-        department="Marketing",
-    )
-    session.add_all([alice, john, sarah, geri])
-    session.commit()
-    _reset_inc()
-
-    session.add_all(
-        [
-            Contact(
-                first_name="Nick",
-                last_name="Smyth",
-                marketing_opt_in=True,
-                is_active=True,
-                owner=john,
-                company=coca_cola,
-            ),
-            Contact(
-                first_name="Simon",
-                last_name="Jaff",
-                marketing_opt_in=True,
-                is_active=False,
-                owner=john,
-                company=legal_co,
-            ),
-            Contact(
-                first_name="Mary",
-                last_name="Jane",
-                marketing_opt_in=False,
-                is_active=True,
-                owner=sarah,
-                company=pepsi_co,
-            ),
-            Contact(
-                first_name="Christina",
-                last_name="Baker",
-                marketing_opt_in=True,
-                is_active=False,
-                owner=sarah,
-                company=capri_sun,
-            ),
-            Contact(
-                first_name="Aleks",
-                last_name="Kozlov",
-                marketing_opt_in=True,
-                is_active=True,
-                owner=sarah,
-                company=pepsi_co,
-            ),
-        ],
-    )
-    session.commit()

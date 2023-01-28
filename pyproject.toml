@@ -45,7 +45,7 @@ test = "pytest"
 lint = "black ."
 sort = "isort ."
 format = {composite = ["lint", "sort"]}
-demo = "python main.py"
+demo = "python src/cerbos_example/main.py"
 
 [tool.isort]
 profile = 'black'

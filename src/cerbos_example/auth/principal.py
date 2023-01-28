@@ -3,7 +3,8 @@ from typing import Optional
 from cerbos.sdk.model import Principal
 from sqlalchemy import select
 
-from cerbos_example.app.models import Session, User
+from cerbos_example.app.models import User
+from cerbos_example.database import Session
 
 
 def get_principal(username: str) -> Optional[Principal]:
