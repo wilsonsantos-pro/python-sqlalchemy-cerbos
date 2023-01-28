@@ -2,68 +2,17 @@ from cerbos.sdk.client import CerbosClient
 from cerbos.sdk.model import Principal, Resource
 from cerbos_sqlalchemy import get_query
 from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.encoders import jsonable_encoder
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from sqlalchemy import delete, select
+from sqlalchemy import delete
 
-from cerbos_example.app.models import Contact, User
-from cerbos_example.app.quota import quota
-from cerbos_example.app.schemas import ContactSchema
-from cerbos_example.auth.auth import is_allowed
-from cerbos_example.auth.query import get_query_plan
+from cerbos_example.auth import get_query_plan, is_allowed
 from cerbos_example.database import Session
 
+from .dependencies import get_db_contact, get_principal, get_resource_from_contact
+from .models import Contact, User
+from .quota import quota
+from .schemas import ContactSchema
+
 app = FastAPI()
-security = HTTPBasic()
-
-
-# Stored users:
-#   "alice": "admin",
-#   "john": "user",
-#   "sarah": "user",
-#   "geri": "user",
-def get_principal(credentials: HTTPBasicCredentials = Depends(security)) -> Principal:
-    username = credentials.username
-
-    with Session() as session:
-        # retrieve `user` from the DB to access the attributes
-        user = session.scalars(select(User).where(User.username == username)).first()
-        if user is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
-            )
-
-    return Principal(
-        user.id,
-        roles={user.role},
-        attr={"department": user.department, "contact_quota": 5},
-    )
-
-
-def get_db_contact(contact_id: str) -> Contact:
-    with Session() as session:
-        contact = session.scalars(
-            select(Contact).where(Contact.id == contact_id)
-        ).first()
-        if contact is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Contact not found",
-            )
-    return contact
-
-
-def get_resource_from_contact(
-    db_contact: Contact = Depends(get_db_contact),
-) -> Resource:
-    return Resource(
-        id=db_contact.id,
-        kind="contact",
-        attr=jsonable_encoder(
-            {n.name: getattr(db_contact, n.name) for n in Contact.__table__.c}
-        ),
-    )
 
 
 @app.get("/contacts")

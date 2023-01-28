@@ -7,7 +7,7 @@ from cerbos_example.app.models import User
 from cerbos_example.database import Session
 
 
-def get_principal(username: str) -> Optional[Principal]:
+def principal_from_username(username: str) -> Optional[Principal]:
 
     with Session() as dbsession:
         # retrieve `user` from the DB to access the attributes
@@ -15,4 +15,8 @@ def get_principal(username: str) -> Optional[Principal]:
         if user is None:
             return None
 
-    return Principal(user.id, roles={user.role}, attr={"department": user.department})
+    return Principal(
+        user.id,
+        roles={user.role},
+        attr={"department": user.department, "contact_quota": 5},
+    )
