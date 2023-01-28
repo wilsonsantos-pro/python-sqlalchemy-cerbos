@@ -1,5 +1,5 @@
 [project]
-name = ""
+name = "cerbos_example"
 version = ""
 description = ""
 authors = [
@@ -49,3 +49,19 @@ demo = "python main.py"
 
 [tool.isort]
 profile = 'black'
+
+
+[tool.pylint.MASTER]
+extension-pkg-whitelist = "pydantic"
+jobs = 2
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = [
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "too-few-public-methods",
+    "missing-function-docstring",
+]
+
+[tool.pylint.CODE_STYLE]
+max-line-length = 88

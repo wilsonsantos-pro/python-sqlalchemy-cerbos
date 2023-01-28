@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from main import app
+from cerbos_example.app.api import app
 
 
 @pytest.fixture(scope="session")

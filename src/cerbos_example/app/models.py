@@ -12,23 +12,24 @@ Base = declarative_base()
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args={"check_same_thread": False},
-    poolclass=StaticPool,  # Use a static pool to persist state with an in memory instance of sqlite
+    # Use a static pool to persist state with an in memory instance of sqlite
+    poolclass=StaticPool,
 )
 
 
-_inc = 1
+_INC = 1
 
 
 def _get_str_inc():
-    global _inc
-    s = str(_inc)
-    _inc = _inc + 1
-    return s
+    global _INC  # pylint: disable=global-statement
+    s_inc = str(_INC)
+    _INC = _INC + 1
+    return s_inc
 
 
 def _reset_inc():
-    global _inc
-    _inc = 1
+    global _INC  # pylint: disable=global-statement
+    _INC = 1
 
 
 class User(Base):
@@ -76,13 +77,13 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Populate with example data
-with Session() as s:
+with Session() as session:
     coca_cola = Company(name="Coca Cola")
     legal_co = Company(name="Legal Co")
     pepsi_co = Company(name="Pepsi Co")
     capri_sun = Company(name="Capri Sun")
-    s.add_all([coca_cola, legal_co, pepsi_co, capri_sun])
-    s.commit()
+    session.add_all([coca_cola, legal_co, pepsi_co, capri_sun])
+    session.commit()
     _reset_inc()
 
     alice = User(
@@ -113,11 +114,11 @@ with Session() as s:
         role="user",
         department="Marketing",
     )
-    s.add_all([alice, john, sarah, geri])
-    s.commit()
+    session.add_all([alice, john, sarah, geri])
+    session.commit()
     _reset_inc()
 
-    s.add_all(
+    session.add_all(
         [
             Contact(
                 first_name="Nick",
@@ -161,4 +162,4 @@ with Session() as s:
             ),
         ],
     )
-    s.commit()
+    session.commit()

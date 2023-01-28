@@ -4,9 +4,9 @@ from typing import TYPE_CHECKING, Any, Dict, Generator, List
 import pytest
 from sqlalchemy import delete, update
 
-from app.models import Contact, Session
-from app.quota import set_contact_quota_limit
-from app.schemas import ContactSchema
+from cerbos_example.app.models import Contact, Session
+from cerbos_example.app.quota import set_contact_quota_limit
+from cerbos_example.app.schemas import ContactSchema
 
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
