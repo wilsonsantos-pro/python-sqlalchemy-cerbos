@@ -1,4 +1,3 @@
-from cerbos.sdk.client import CerbosClient
 from cerbos.sdk.model import Principal, Resource
 from cerbos_sqlalchemy import get_query
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -7,9 +6,13 @@ from sqlalchemy import delete
 from cerbos_example.auth import get_query_plan, is_allowed
 from cerbos_example.database import Session
 
-from .dependencies import get_db_contact, get_principal, get_resource_from_contact
+from .dependencies import (
+    get_db_contact,
+    get_principal,
+    get_resource_from_contact,
+    get_resource_from_new_contact,
+)
 from .models import Contact, User
-from .quota import quota
 from .schemas import ContactSchema
 
 app = FastAPI()
@@ -29,7 +32,6 @@ def get_contacts(principal: Principal = Depends(get_principal)):
             "request.resource.attr.marketing_opt_in": Contact.marketing_opt_in,
         },
         [(User, Contact.owner_id == User.id)],
-        # [(User.__table__, Contact.__table__.c.owner_id==User.__table__.c.id)],
     )
 
     # Optionally reduce the returned columns
@@ -43,7 +45,6 @@ def get_contacts(principal: Principal = Depends(get_principal)):
         Contact.is_active,
         Contact.marketing_opt_in,
     )
-    # print(query.compile(compile_kwargs={"literal_binds": True}))
 
     with Session() as session:
         rows = session.execute(query).fetchall()
@@ -55,28 +56,22 @@ def get_contacts(principal: Principal = Depends(get_principal)):
 def get_contact(
     db_contact: Contact = Depends(get_db_contact),
     principal: Principal = Depends(get_principal),
+    resource: Resource = Depends(get_resource_from_contact),
 ):
-    resource = get_resource_from_contact(db_contact)
-
-    with CerbosClient(host="http://localhost:3592") as cerbos:
-        if not cerbos.is_allowed("read", principal, resource):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
-            )
+    if not is_allowed("read", principal, resource):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
+        )
 
     return db_contact
 
 
 @app.post("/contacts/new")
 def create_contact(
-    contact_schema: ContactSchema, principal: Principal = Depends(get_principal)
+    contact_schema: ContactSchema,
+    principal: Principal = Depends(get_principal),
+    resource: Resource = Depends(get_resource_from_new_contact),
 ):
-    resource = Resource(
-        id="new",
-        kind="contact",
-        attr={"contact_quota_limit": quota.contact_quota_limit},
-    )
-
     if not is_allowed("create", principal, resource):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
@@ -98,12 +93,10 @@ def update_contact(
     principal: Principal = Depends(get_principal),
     resource: Resource = Depends(get_resource_from_contact),
 ):
-
-    with CerbosClient(host="http://localhost:3592") as cerbos:
-        if not cerbos.is_allowed("update", principal, resource):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
-            )
+    if not is_allowed("update", principal, resource):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
+        )
 
     for field, value in contact_schema:
         setattr(db_contact, field, value)
@@ -118,15 +111,13 @@ def update_contact(
 
 @app.delete("/contacts/{contact_id}")
 def delete_contact(
-    resource: Resource = Depends(get_resource_from_contact),
     principal: Principal = Depends(get_principal),
+    resource: Resource = Depends(get_resource_from_contact),
 ):
-
-    with CerbosClient(host="http://localhost:3592") as cerbos:
-        if not cerbos.is_allowed("delete", principal, resource):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
-            )
+    if not is_allowed("delete", principal, resource):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized"
+        )
 
     with Session() as session:
         session.execute(delete(Contact).where(Contact.id == resource.id))

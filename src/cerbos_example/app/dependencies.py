@@ -8,6 +8,7 @@ from cerbos_example.auth import principal_from_username
 from cerbos_example.database import Session
 
 from .models import Contact
+from .quota import quota
 
 security = HTTPBasic()
 
@@ -52,4 +53,12 @@ def get_resource_from_contact(
         attr=jsonable_encoder(
             {n.name: getattr(db_contact, n.name) for n in Contact.__table__.c}
         ),
+    )
+
+
+def get_resource_from_new_contact() -> Resource:
+    return Resource(
+        id="new",
+        kind="contact",
+        attr={"contact_quota_limit": quota.contact_quota_limit},
     )
