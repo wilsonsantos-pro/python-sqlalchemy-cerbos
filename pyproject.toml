@@ -7,22 +7,14 @@ authors = [
 ]
 dependencies = [
     "cerbos>=0.5.0",
-    "SQLAlchemy>=1.4.40",
+    "SQLAlchemy>=1.4.40,<2.0",
     "fastapi>=0.81.0",
     "uvicorn>=0.18.3",
     "cerbos-sqlalchemy>=0.2.0",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.8"
 license = {text = "\"Apache-2.0\""}
 [project.optional-dependencies]
-
-[tool.pdm]
-#allow_prereleases = true  # this is also required to pick the latest dev versions from test PyPI
-
-#[[tool.pdm.source]]
-#url = "https://test.pypi.org/simple"
-#name = "test"
-#verify_ssl = true
 
 [tool.pdm.dev-dependencies]
 lint = [
@@ -41,10 +33,6 @@ requires = ["pdm-pep517>=1.0.0"]
 build-backend = "pdm.pep517.api"
 
 [tool.pdm.scripts]
-test = "pytest"
-lint = "black ."
-sort = "isort ."
-format = {composite = ["lint", "sort"]}
 demo = "python src/cerbos_example/main.py"
 
 [tool.isort]
