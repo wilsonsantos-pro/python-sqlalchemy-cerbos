@@ -1,6 +1,6 @@
 [project]
 name = "cerbos_example"
-version = ""
+version = "0.1.0"
 description = ""
 authors = [
     {name = "\"Cerbos Developers\"", email = "\"help@cerbos.dev\""},
@@ -26,6 +26,8 @@ dev = [
     "pylint>=2.15.10",
     "watchfiles>=0.18.1",
     "pytest>=7.2.1",
+    "tox>=4.4.0",
+    "tox-pdm>=0.6.1",
 ]
 
 [build-system]
@@ -41,7 +43,7 @@ profile = 'black'
 
 [tool.pylint.MASTER]
 extension-pkg-whitelist = "pydantic"
-jobs = 2
+jobs = 4
 
 [tool.pylint."MESSAGES CONTROL"]
 disable = [
